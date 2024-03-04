@@ -2,6 +2,7 @@ const User = require("../models/userModel");
 const { emailBuilder } = require("../nodeMailer");
 const jwt = require("jsonwebtoken");
 const SECRET_KEY = "secretkey123123";
+const bycrypt = require("bcrypt");
 
 const protectRoute = async (req, res, next) => {
   try {
@@ -124,9 +125,14 @@ const loginHandler = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    if (user.password !== password) {
+    const isMatch = await bycrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
+
+    // if (user.password !== password) {
+    //   return res.status(401).json({ message: "Invalid credentials" });
+    // }
     jwt.sign(
       { data: user._id },
       SECRET_KEY,
