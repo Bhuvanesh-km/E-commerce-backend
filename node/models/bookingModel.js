@@ -19,11 +19,12 @@ const bookingSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  product: {
-    type: mongoose.Schema.Types.ObjectId,
+  products: {
+    type: [{ product: mongoose.Schema.Types.ObjectId, quantity: Number }],
     ref: "Product",
     required: true,
   },
+  TotalItems: Number,
   paymentOrderId: String,
 });
 

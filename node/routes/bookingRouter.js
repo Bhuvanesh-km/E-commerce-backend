@@ -1,9 +1,11 @@
 const express = require("express");
 const razorpay = require("razorpay");
 const crypto = require("crypto");
+const shortId = require("short-uuid");
 const { protectRoute } = require("../controllers/authController");
 const Booking = require("../models/bookingModel");
 const User = require("../models/userModel");
+const Product = require("../models/productsModel");
 const bookingRouter = express.Router();
 
 const razorpayInstance = new razorpay({
@@ -11,21 +13,26 @@ const razorpayInstance = new razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-bookingRouter.post("/:productId", protectRoute, async (req, res) => {
+bookingRouter.post("/", protectRoute, async (req, res) => {
   try {
-    const { productId } = req.params;
+    console.log("booking route hit");
+    const { productsArray, priceAtBooking } = req.body;
     const { userId } = req;
-    const { priceAtBooking } = req.body;
     const bookingObj = {
-      product: productId,
+      priceAtBooking,
+      products: productsArray,
       user: userId,
-      priceAtBooking: priceAtBooking,
+      TotalItems: productsArray
+        .map((product) => product.quantity)
+        .reduce((a, b) => a + b, 0),
     };
-    console.log(bookingObj);
+    // console.log(bookingObj);
+    // // create a booking
     const booking = await Booking.create(bookingObj);
+    // console.log(booking);
     // update user with booking details
     const user = await User.findById(userId);
-    console.log(user);
+    // console.log(user);
     user.bookings.push(booking._id);
     await user.save();
     var options = {
@@ -33,6 +40,7 @@ bookingRouter.post("/:productId", protectRoute, async (req, res) => {
       currency: "INR",
       receipt: booking._id.toString(),
     };
+
     const order = await razorpayInstance.orders.create(options);
     console.log("order created", order);
     booking.paymentOrderId = order.id;
@@ -49,7 +57,7 @@ bookingRouter.post("/:productId", protectRoute, async (req, res) => {
 bookingRouter.get("/", protectRoute, async (req, res) => {
   const bookings = await Booking.find()
     .populate({ path: "user", select: "name email" })
-    .populate({ path: "product", select: "name price" });
+    .populate({ path: "products", select: "name price" });
   if (bookings) {
     res.status(200).json({
       status: "success",
@@ -65,6 +73,7 @@ bookingRouter.get("/", protectRoute, async (req, res) => {
 
 bookingRouter.post("/verify", async (req, res) => {
   try {
+    console.log("webhook hit", req.body);
     const shasum = crypto.createHmac("sha256", process.env.WEBHOOK_SECRET);
     shasum.update(JSON.stringify(req.body));
     const digest = shasum.digest("hex");
