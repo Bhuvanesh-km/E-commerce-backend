@@ -16,7 +16,12 @@ const reviewRouter = require("./routes/reviewRouter");
 
 const app = express();
 app.use(express.json());
-app.use(cookieParser());
+app.use(
+  cookieParser({
+    sameSite: "none",
+    secure: true,
+  })
+);
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
