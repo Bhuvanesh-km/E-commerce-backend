@@ -16,7 +16,12 @@ const reviewRouter = require("./routes/reviewRouter");
 
 const app = express();
 app.use(express.json());
-app.use(cookieParser({}));
+app.use(
+  cookieParser({
+    sameSite: "none",
+    secure: true,
+  })
+);
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -34,7 +39,7 @@ app.use(mongoSanitize());
 // app.use(cors());
 app.use(
   cors({
-    origin: "https://main--e-commerce-app-fe.netlify.app/",
+    origin: true,
     credentials: true,
   })
 );
