@@ -16,12 +16,7 @@ const reviewRouter = require("./routes/reviewRouter");
 
 const app = express();
 app.use(express.json());
-app.use(
-  cookieParser({
-    sameSite: "none",
-    secure: true,
-  })
-);
+app.use(cookieParser());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -39,8 +34,8 @@ app.use(mongoSanitize());
 // app.use(cors());
 app.use(
   cors({
-    origin: true,
-    credentials: true,
+    origin: true, // origin true will allow all requests from all domains to access this server
+    credentials: true, // credentials true will allow cookies to be sent and received
   })
 );
 
