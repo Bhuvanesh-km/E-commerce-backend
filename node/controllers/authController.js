@@ -141,7 +141,7 @@ const loginHandler = async (req, res) => {
         if (err) {
           console.log(err);
         }
-        res.cookie("token", token, { maxAge: 1000 * 60 * 60, httpOnly: true, sameSite:'None' });
+        res.cookie("token", token, { maxAge: 1000 * 60 * 60, httpOnly: true, sameSite:'None', secure: true });
         res.status(200).json({
           message: "login successful",
           data: user,
